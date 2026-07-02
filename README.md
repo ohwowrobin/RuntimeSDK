@@ -5,8 +5,6 @@ Engine-agnostic, in-process, Shipping-stable. Drop one DLL next to your game or 
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen)](LICENSE)
 
-Korvayne Runtime used to be a paid product. It's now **MIT-licensed and free** no license key, no activation, no server required. We're opening it up to give indie studios a real, auditable anti-cheat baseline and to build Korvayne into a name the community trusts.
-
 ---
 
 ## What's in this repo
