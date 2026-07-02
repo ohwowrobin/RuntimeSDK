@@ -1,8 +1,5 @@
 # Korvayne Runtime - Unity Wrapper
 
-Korvayne Runtime is free and MIT-licensed. Clone or download it from
-https://github.com/ohwowrobin/korvayne-latest. It drops in with no license file and no server, and
-arms at full capability out of the box.
 
 This sample is a thin C# wrapper over the native Windows x64 `anticheat.dll`. It is not a rewrite of
 the anti-cheat core. The DLL still performs the detection work; Unity only loads it and calls the
