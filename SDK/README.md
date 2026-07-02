@@ -59,7 +59,6 @@ LICENSE.txt                      MIT license
 
 ## Integration
 
-- Clone or download the repo: `https://github.com/ohwowrobin/korvayne-latest`.
 - Drop-in: ship `anticheat.dll` and optional `anticheat.ini`, then load the DLL at startup. No
   license file is required. For protected online modes, fail closed if the DLL does not load.
 - Config: copy `sdk/anticheat.ini.example` to `anticheat.ini` next to the DLL and edit the keys
