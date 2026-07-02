@@ -1,0 +1,14 @@
+name = "korvayne-runtime-endpoint"
+main = "worker.js"
+compatibility_date = "2026-06-29"
+
+# Create with: wrangler d1 create korvayne-replay
+[[d1_databases]]
+binding = "KORVAYNE_REPLAY_D1"
+database_name = "korvayne-replay"
+database_id = "replace-with-d1-database-id"
+
+[vars]
+EVENT_RATE_LIMIT_PER_MIN = "120"
+ACCESS_RATE_LIMIT_PER_MIN = "30"
+REPLAY_TTL_SEC = "86400"

@@ -1,0 +1,190 @@
+openapi: 3.1.0
+info:
+  title: Korvayne Runtime Studio Endpoint Contract
+  version: 0.1.0
+  description: >
+    Minimal studio-owned API contract for direct-to-studio Korvayne Runtime telemetry
+    and access checks. Endpoints are public once shipped in a game client; secure them
+    with short-lived session tokens, server-side identity verification, replay protection,
+    and rate limits. Treat non-attested telemetry as client-reported review evidence, not
+    automatic enforcement proof.
+servers:
+  - url: https://your-game.example.com
+security:
+  - bearerSessionToken: []
+paths:
+  /anti-cheat/events:
+    post:
+      summary: Ingest one anti-cheat detection event
+      operationId: ingestAntiCheatEvent
+      tags: [Telemetry]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/telemetry-event.schema.json
+            examples:
+              valueGuard:
+                summary: Protected value tamper
+                value:
+                  event_id: "4242-938475-7"
+                  timestamp: "2026-06-29T17:22:08.123Z"
+                  sdk_version: "acsdk 0.1.3-runtime"
+                  license_id: "0123456789abcdef"
+                  license_tier: 1
+                  game_id: "example-game"
+                  environment: "production"
+                  identity_provider: "steam"
+                  player_id: "player_123"
+                  session_id: "match_abc"
+                  platform_user_id: "76561190000000000"
+                  game_build: "1.0.42"
+                  severity: "high"
+                  category: "protected_value"
+                  sensor: "ValueGuard"
+                  detection: "ValueGuard"
+                  confidence: 1
+                  detail: 140737488355328
+                  action_taken: "reported"
+                  server_observed_ip: true
+                  client_sends_ip: false
+                  paths_redacted: true
+                  message: "protected value 'weapon.ammo' changed out-of-band"
+              saveGame:
+                summary: Protected save failed verification
+                value:
+                  event_id: "4242-938475-9"
+                  timestamp: "2026-06-30T20:15:00.000Z"
+                  sdk_version: "acsdk 0.1.3-runtime"
+                  license_id: "0123456789abcdef"
+                  license_tier: 1
+                  game_id: "example-game"
+                  environment: "production"
+                  identity_provider: "steam"
+                  player_id: "player_123"
+                  session_id: "profile_load"
+                  platform_user_id: "76561190000000000"
+                  game_build: "1.0.42"
+                  severity: "high"
+                  category: "savegame_integrity"
+                  sensor: "SaveGame"
+                  detection: "SaveGame"
+                  confidence: 0.95
+                  detail: 0
+                  action_taken: "reported"
+                  server_observed_ip: true
+                  client_sends_ip: false
+                  paths_redacted: true
+                  message: "savegame integrity check failed: payload or tag modified"
+              enforcement:
+                summary: Local enforcement action
+                value:
+                  event_id: "4242-938475-8"
+                  timestamp: "2026-06-29T17:22:09.001Z"
+                  sdk_version: "acsdk 0.1.3-runtime"
+                  license_id: "0123456789abcdef"
+                  license_tier: 2
+                  game_id: "example-game"
+                  environment: "production"
+                  identity_provider: "steam"
+                  player_id: "player_123"
+                  session_id: "match_abc"
+                  platform_user_id: "76561190000000000"
+                  game_build: "1.0.42"
+                  severity: "critical"
+                  category: "enforcement"
+                  sensor: "Enforce"
+                  detection: "Enforce"
+                  confidence: 1
+                  detail: 0
+                  action_taken: "reported"
+                  server_observed_ip: true
+                  client_sends_ip: false
+                  paths_redacted: true
+                  message: "ejecting unsigned external reader"
+      responses:
+        "202":
+          description: Event accepted for processing.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [accepted]
+                properties:
+                  accepted:
+                    type: boolean
+                    const: true
+                  event_id:
+                    type: string
+                  trust_level:
+                    type: string
+                    enum: ["client_reported", "trusted_runtime"]
+                  enforcement_eligible:
+                    type: boolean
+        "400":
+          description: Request body failed schema validation.
+        "401":
+          description: Missing or invalid session token.
+        "409":
+          description: Duplicate event_id replay.
+        "429":
+          description: Rate limited.
+  /anti-cheat/access-check:
+    post:
+      summary: Check whether the current player/session may continue
+      operationId: checkAntiCheatAccess
+      tags: [Access]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/access-check-request.schema.json
+            examples:
+              startup:
+                summary: Startup access check
+                value:
+                  request_type: "access_check"
+                  game_id: "example-game"
+                  environment: "production"
+                  identity_provider: "steam"
+                  player_id: "player_123"
+                  session_id: "match_abc"
+                  platform_user_id: "76561190000000000"
+                  game_build: "1.0.42"
+                  access_provider: "studio_backend"
+                  mode: "startup_and_recheck"
+                  sdk_version: "acsdk 0.1.3-runtime"
+                  license_id: "0123456789abcdef"
+                  license_tier: 1
+                  client_side_only: true
+      responses:
+        "200":
+          description: Access decision.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/access-check-response.schema.json
+              examples:
+                allowed:
+                  value:
+                    allowed: true
+                banned:
+                  value:
+                    allowed: false
+                    reason_code: "active_ban"
+                    reason_public: "Access denied."
+        "400":
+          description: Request body failed schema validation.
+        "401":
+          description: Missing or invalid session token.
+        "429":
+          description: Rate limited.
+components:
+  securitySchemes:
+    bearerSessionToken:
+      type: http
+      scheme: bearer
+      bearerFormat: "short-lived studio session token"

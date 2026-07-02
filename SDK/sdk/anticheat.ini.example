@@ -1,0 +1,186 @@
+; anticheat.ini - place this file next to the game executable.
+; Missing keys fall back to the defaults shown here.
+; Client config is public. Do not put server secrets here.
+;
+; Korvayne Runtime is free and MIT-licensed
+; (https://github.com/ohwowrobin/korvayne-latest). There is no license file
+; and no server to contact: the SDK drops in and arms at full capability out of
+; the box.
+
+[Profile]
+; Configurator metadata only. Runtime enforcement is controlled by the sections below.
+preset = detection_only
+
+[Enforcement]
+; Revert protected values when an out-of-band write is detected.
+; Default package starts report-only; enable this only after ValueGuard is integrated.
+restore = 0
+
+; Terminate on high-confidence/corroborated tamper. Keep off until tuned.
+eject = 0
+
+; Also terminate on unsigned external reader handles. This is a separate aggressive
+; reader-only switch, not gated by eject=1.
+eject_on_reader = 0
+
+; External handle response:
+;   corroborated      = report handles; eject only after another hard signal
+;   terminate_write   = with eject=1, terminate on unsigned write/inject handles
+;   terminate_reader  = with eject=1, also terminate unsigned read-only handles
+; eject_on_reader=1 is a separate reader-only override and can close the game
+; even when eject=0. Use it only after clean-machine false-positive testing.
+; User-mode AC terminates the protected game session; it cannot reliably close
+; another process' handle in place.
+handle_response = corroborated
+
+; Per-category local response policies:
+;   report       = log/telemetry only
+;   corroborated = terminate only if another hard signal appears nearby
+;   terminate   = terminate on HIGH/CRIT for that category when eject=1
+; Module-specific:
+;   terminate_high     = known-cheat/high-confidence injected module only
+;   terminate_unsigned = also terminate newly-loaded unsigned DLLs
+module_response = report
+memory_response = report
+hook_response = report
+debugger_response = report
+selfprotect_response = report
+behavior_response = report
+
+; Background sensor cadence in milliseconds.
+scan_interval_ms = 1000
+
+[Logging]
+; Local integration/debug log. Telemetry is the production evidence path.
+enabled = 1
+
+[Identity]
+; Non-secret game context. Runtime calls can also set/override these values.
+game_id =
+environment = production
+provider = steam
+require_verified_identity = 1
+player_id_source = sdk_runtime
+session_id_source = sdk_runtime
+platform_user_id_source = steam_auth
+game_build_source = sdk_runtime
+
+[Telemetry]
+; Optional. JSON detection ingestion endpoint for the self-hostable analysis
+; backend. The SDK works fully without it; enable only if you run your own
+; backend and want to correlate detections server-side.
+enabled = 0
+endpoint =
+min_severity = low
+batch_interval_ms = 5000
+timeout_ms = 2500
+auth_header = Authorization
+
+; Recommended production mode. Your backend issues a short-lived session token
+; after login/platform verification, then the game calls AC_SetTelemetryToken(...).
+; The same header/token is used for telemetry and AccessCheck requests.
+token_source = runtime_session_token
+
+; Static config tokens are intentionally empty. Shipped client config is public,
+; so generate tokens on the studio backend and pass them at runtime.
+auth_token =
+
+[TelemetryEvents]
+injection = 1
+hook_detection = 1
+handle_checks = 1
+debugger = 1
+boot_state = 1
+memory_integrity = 1
+sdk_integrity = 1
+protected_value = 0
+access_check = 1
+aim_behavior = 1
+savegame_integrity = 1
+
+[TelemetryFields]
+player_id = 1
+session_id = 1
+platform_user_id = 1
+game_build = 1
+sdk_version = 1
+module_sha256 = 1
+module_signer = 1
+action_taken = 1
+server_observed_ip = 1
+client_sends_ip = 0
+hardware_id = 0
+process_names = 0
+process_name_mode = redacted
+redact_paths = 1
+
+[AccessCheck]
+; Early client rejection/UX. Real ban enforcement must also happen server-side.
+; Sends requests only when enabled=1, endpoint is valid, and mode is not
+; server_guidance_only.
+enabled = 0
+provider = studio_backend
+endpoint =
+; startup_only checks once, startup_and_recheck repeats during long sessions,
+; server_guidance_only documents server-side enforcement and sends no client
+; access-check request.
+mode = startup_and_recheck
+timeout_ms = 2500
+recheck_interval_sec = 300
+fail_mode = block
+
+; block_start/terminate closes the protected game on startup denial.
+; show_message_only needs wrapper/game UI; drop-in mode only logs/emits it.
+on_banned = block_start
+
+; disconnect/show_message_only/none are wrapper/game-code instructions from the
+; AccessCheck event. Use terminate only if the SDK should close the protected
+; game locally during recheck.
+on_session_ban = disconnect
+appeal_url =
+
+[BanEnforcement]
+; Guidance only. Enforce bans on the trusted studio/game server.
+server_side_required = 1
+template = steam_server
+client_enforcement = access_check_only
+verify_identity_server_side = 1
+platform_ban_requests_from_client = 0
+steam_game_bans_from_backend = 0
+
+[ValueGuard]
+enabled = 0
+default_action = report
+report_min_severity = medium
+max_tracked_values = 128
+sdk_api_required = 1
+api_style = typed_helpers
+supported_types = u32,i32,float
+legit_write_model = write_through_setter
+direct_write_fallback = note_legit
+telemetry_event = 0
+
+[ProtectedValues]
+; Documentation only. Register real values at runtime with AC_Guard*.
+; Examples: float:player.health, i32:weapon.ammo, float:player.speed_multiplier
+; Only code paths that write through AC_SetGuarded* are considered legitimate.
+; An injected module in the same process can still call public exports; use
+; ValueGuard as a tamper signal, not as a standalone server ban proof.
+
+[SaveGameProtection]
+; Policy for AC_ProtectSaveBuffer/File and AC_VerifySaveBuffer/File.
+; The game still owns serialization and the load/reject UX.
+enabled = 1
+mode = sign_and_obfuscate
+obfuscate_payload = 1
+tamper_severity = high
+max_save_bytes = 1048576
+on_tamper = reject_load
+context_binding = game_id,player_id,slot,schema
+telemetry_event = 1
+; Example context: player=<account-id>;slot=autosave;schema=1
+; Offline user-mode protection raises cost for casual save editors, but it is
+; not DRM and cannot replace server-authoritative inventory/economy state.
+
+[EventSchema]
+; Documentation only. Backend parser contracts are in backend-kit/schemas/.

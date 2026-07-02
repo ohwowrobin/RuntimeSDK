@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://korvayne.com/schemas/runtime/telemetry-event.schema.json",
+  "title": "Korvayne Runtime Telemetry Event",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "event_id",
+    "timestamp",
+    "severity",
+    "category",
+    "sensor",
+    "confidence",
+    "detail",
+    "message"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sdk_version": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "license_id": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{16}$"
+    },
+    "license_tier": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "game_id": {
+      "type": "string",
+      "maxLength": 96
+    },
+    "environment": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "identity_provider": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "player_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "session_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "platform_user_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "game_build": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "low", "medium", "high", "critical"]
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "injection",
+        "hook_detection",
+        "handle_checks",
+        "debugger",
+        "boot_state",
+        "memory_integrity",
+        "sdk_integrity",
+        "protected_value",
+        "savegame_integrity",
+        "access_check",
+        "aim_behavior",
+        "enforcement",
+        "unknown"
+      ]
+    },
+    "sensor": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "detection": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "detail": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "action_taken": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "server_observed_ip": {
+      "type": "boolean"
+    },
+    "client_sends_ip": {
+      "type": "boolean",
+      "const": false
+    },
+    "paths_redacted": {
+      "type": "boolean"
+    },
+    "message": {
+      "type": "string",
+      "maxLength": 1024
+    }
+  }
+}

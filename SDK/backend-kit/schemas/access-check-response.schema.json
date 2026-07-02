@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://korvayne.com/schemas/runtime/access-check-response.schema.json",
+  "title": "Korvayne Runtime Access Check Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["allowed"],
+  "properties": {
+    "allowed": {
+      "type": "boolean"
+    },
+    "reason_code": {
+      "type": "string",
+      "enum": [
+        "active_ban",
+        "session_revoked",
+        "invalid_identity",
+        "unsupported_build",
+        "service_unavailable",
+        "runtime_attestation_required",
+        "runtime_liveness_missing",
+        "rate_limited"
+      ]
+    },
+    "reason_public": {
+      "type": "string",
+      "maxLength": 160
+    },
+    "appeal_url": {
+      "type": "string",
+      "format": "uri",
+      "maxLength": 256
+    },
+    "retry_after_sec": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 86400
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "allowed": { "const": false }
+        },
+        "required": ["allowed"]
+      },
+      "then": {
+        "required": ["reason_code"]
+      }
+    }
+  ]
+}

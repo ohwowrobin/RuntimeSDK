@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://korvayne.com/schemas/runtime/access-check-request.schema.json",
+  "title": "Korvayne Runtime Access Check Request",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "request_type",
+    "sdk_version",
+    "client_side_only"
+  ],
+  "properties": {
+    "request_type": {
+      "type": "string",
+      "const": "access_check"
+    },
+    "game_id": {
+      "type": "string",
+      "maxLength": 96
+    },
+    "environment": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "identity_provider": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "player_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "session_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "platform_user_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "game_build": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "access_provider": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["startup_only", "startup_and_recheck", "server_guidance_only", "custom"]
+    },
+    "sdk_version": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "license_id": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{16}$"
+    },
+    "license_tier": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "client_side_only": {
+      "type": "boolean"
+    }
+  }
+}
